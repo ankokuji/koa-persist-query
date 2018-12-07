@@ -1,0 +1,23 @@
+{
+  "name": "koa-persist-query",
+  "description": "Koa middleware to map GraphQL query from hash",
+  "author": {
+    "name": "huguang"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "version": "1.0.0",
+  "scripts": {
+    "compile": "tsc"
+  },
+  "dependencies": {
+    "lodash": "^4.17.11",
+    "lru-cache": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.0.47",
+    "@types/lodash": "^4.14.118",
+    "@types/node": "^10.12.12",
+    "koa": "^2.6.2"
+  }
+}
