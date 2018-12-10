@@ -9,7 +9,7 @@ interface KeyValueCache {
 export class LRUCache implements KeyValueCache {
   private cache: LRU.Cache<string, object>;
 
-  public static getInstance(options?: LRU.Options) {
+  public static getInstance(options?: LRU.Options): LRUCache {
     if (!options) {
       options = { max: 100, maxAge: 1000 * 60 * 60 };
     }
@@ -22,15 +22,15 @@ export class LRUCache implements KeyValueCache {
       maxAge
     });
   }
-  public get(key: string) {
+  public get(key: string): object | undefined {
     return this.cache.get(key);
   }
 
-  public set(key: string, value: any) {
+  public set(key: string, value: any): boolean {
     return this.cache.set(key, value);
   }
 
-  public has(key: string) {
+  public has(key: string): boolean {
     return this.cache.has(key);
   }
 }
