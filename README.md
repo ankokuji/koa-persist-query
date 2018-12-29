@@ -27,9 +27,9 @@ const app = new Koa();
 app.use(bodyparser());
 app.use(persistQuery(options));
 ```
-需要前置使用 `bodyparser` 中间件，中间件会读取 post 请求 body 解析后的结构化数据。同时也需要传入 options 配置映射表等。
+需要前置使用 `bodyparser` 中间件，中间件会读取 post 请求 body 解析后的结构化数据。同时也需要传入 options 配置映射表等。
 
-中间件会解析 GraphQL 相关请求信息，如果请求是通过 persist query 方式发送，则从传入的映射表中得到真正的查询字符串，提供给后续的 GraphQL 执行环境。同时，会对持久化的请求进行请求级别的缓存。
+中间件会解析 GraphQL 相关请求信息，如果请求是通过 persist query 方式发送，则从传入的映射表中得到真正的查询字符串，提供给后续的 GraphQL 执行环境。同时，会对持久化的请求进行请求级别的缓存。
 
 # Interface
 **persistQuery**`(options)`返回一个 `koa` 中间件实例。函数接收一个 `options` 参数作为中间件配置。
