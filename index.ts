@@ -1,6 +1,7 @@
 import _ from "lodash/fp";
 import { getCache } from "./cache";
 import { createHash } from "crypto";
+import accepts from "accepts";
 import { HttpQueryError } from "./error";
 import Koa from "koa";
 const cache = getCache();
@@ -46,7 +47,7 @@ interface GraphQLRequest {
  * @param {PersistCacheConfig} config 配置
  * @returns 中间件函数
  */
-function persistCacheGenerate(
+export function persistQuery(
   config: PersistCacheConfig
 ): (ctx: Koa.Context, next: () => Promise<any>) => void {
   if (!isPersistCacheConfigValid(config)) {
@@ -60,7 +61,7 @@ function persistCacheGenerate(
     next: () => Promise<any>
   ) {
     return conditionDo(
-      shouldHandleByPath(ctx.path, path),
+      shouldExec(ctx, path),
       _.partial(getQueryFromHash)([ctx as Koa.Context, next, map]),
       next
     );
@@ -94,8 +95,7 @@ async function getQueryFromHash(
 
   await next();
 
-  cacheAfterExecutionGraphQL(ctx, {persistHash, requestHash});
-
+  cacheAfterExecutionGraphQL(ctx, { persistHash, requestHash });
 }
 
 /**
@@ -115,9 +115,11 @@ function getResponseFromCache(key: string): any {
  * @param {Koa.Context} ctx
  * @param {{ persistHash: string, requestHash: string}} config
  */
-function cacheAfterExecutionGraphQL(ctx: Koa.Context, config: { persistHash: string, requestHash: string}) {
-
-  const {persistHash, requestHash} = config;
+function cacheAfterExecutionGraphQL(
+  ctx: Koa.Context,
+  config: { persistHash: string; requestHash: string }
+) {
+  const { persistHash, requestHash } = config;
   if (persistHash && ctx.response.type === "application/json") {
     cache.set(requestHash, ctx.body);
     // set memory cache
@@ -288,6 +290,38 @@ async function conditionDo(
 }
 
 /**
+ * 执行条件
+ *
+ * @param {Koa.Context} ctx
+ */
+function shouldExec(ctx: Koa.Context, path: string): boolean {
+  return shouldHandleByPath(ctx.path, path) && shouldHandleByrequestType(ctx);
+}
+
+/**
+ * 判断是否是真正的graphql查询请求
+ *
+ * @param {Koa.Context} ctx
+ * @returns {boolean}
+ */
+function shouldHandleByrequestType(ctx: Koa.Context): boolean {
+  if (ctx.request.method === "GET") {
+    // perform more expensive content-type check only if necessary
+    const accept = accepts(ctx.req);
+    const types = accept.types() as string[];
+    const prefersHTML =
+      types.find(
+        (x: string) => x === "text/html" || x === "application/json"
+      ) === "text/html";
+
+    if (prefersHTML) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * 路由的简单判断，比较是否完全一致
  *
  * @param {string} path
@@ -326,5 +360,3 @@ function generateRequestHash(
     .update(queryHashId + variableStirng)
     .digest("hex");
 }
-
-export default persistCacheGenerate;
